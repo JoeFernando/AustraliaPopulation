@@ -1,0 +1,157 @@
+---
+title: "Transform ABS Data"
+output: html_document
+---
+
+Source: [3105.0.65.001 - Australian Historical Population Statistics, 2014](http://www.abs.gov.au/AUSSTATS/abs@.nsf/DetailsPage/3105.0.65.0012014?OpenDocument)
+
+This code will transform the excel spreadsheet data into useable R data.
+
+```{r results='hide', warning=FALSE, message=FALSE}
+library(magrittr)
+library(dplyr)
+library(tidyr)
+library(knitr)
+library(ggplot2)
+library(readxl) # devtools::install_github("hadley/readxl")
+library(foreach)
+
+
+filename <- "ABS/3105065001DS0001_2014.xls"  # Population Size and Growth  
+# List of all tables in fle
+readxl::excel_sheets(filename)
+
+```
+
+
+
+Table 1.1 Population by sex, states and territories, 31 December, 1788 onwards
+------------------------------------------------------------------------------
+```{r results='hide', warning=FALSE}
+# Due to the terrible layout of the Excel file, the column names generated
+# by reading directly are rubbish, so I'll generate my own.
+# Same with column types. Same with the locations.
+col_names <- c("location", 1788:2010)
+col_types <- c('text', rep("numeric", 2010-1788+1))
+location_<- c('NSW', 'VIC', 'QLD', 'SA', 'WA', 'TAS', 'NT', 'ACT', 'Australia')
+# Table1.1 = Sheet 2.  Have to skip 5 rows of shit at the start.
+# Then there is trailing shit after the data that will cause warnings, so
+# will have to trim the data, and 'redo' the location column.
+df <- readxl::read_excel(filename, sheet="Table 1.1", skip=5, col_names=col_names, col_types=col_types) 
+
+# Extract out the male, female and persons data into separate data.frames
+df.male    <- df[ 2:10,] %>% mutate(location = location_) 
+df.female  <- df[13:21,] %>% mutate(location = location_)
+df.persons <- df[24:32,] %>% mutate(location = location_)
+```
+
+```{r echo=FALSE}
+knitr::kable(df.male   [, c(1, 200:210)], caption="Aust Historical Popn Stats (End year): Males")
+knitr::kable(df.female [, c(1, 200:210)], caption="Aust Historical Popn Stats (End year): Feales")
+knitr::kable(df.persons[, c(1, 200:210)], caption="Aust Historical Popn Stats (End year): Persons")
+```
+
+```{r echo=FALSE, results='hide'}
+# Reshape and plot
+df.male    %<>% gather(year, population, -location) %>% mutate(sex='male')
+df.female  %<>% gather(year, population, -location) %>% mutate(sex='female')
+df.persons %<>% gather(year, population, -location) %>% mutate(sex='persons')
+
+population <- bind_rows(df.male, df.female, df.persons) %>% mutate(year = as.numeric(levels(year)[year]))
+
+# Some test plots
+all.df <- filter(population, sex=='persons', location=='Australia')
+ggplot(all.df, aes(year, population)) + geom_line() 
+ggplot(filter(population, location=='Australia'), aes(year, population, group=sex)) + geom_line()
+
+# Save
+save(population, file="../data/population.rda", compress = 'bzip2')
+```
+
+
+Table 1.2 Population by sex, states and territories, 30 June, 1901 onwards
+------------------------------------------------------------------------------
+```{r results='hide', warning=FALSE}
+col_names <- c("location", 1901:2011)
+col_types <- c('text', rep("numeric", 2011-1901+1))
+location_<- c('NSW', 'VIC', 'QLD', 'SA', 'WA', 'TAS', 'NT', 'ACT', 'Australia')
+# Table1.1 = Sheet 2.  Have to skip 5 rows of shit at the start.
+# Then there is trailing shit after the data that will cause warnings, so
+# will have to trim the data, and 'redo' the location column.
+df <- readxl::read_excel(filename, sheet="Table 1.2", skip=5, col_names=col_names, col_types=col_types) 
+
+# Extract out the male, female and persons data into separate data.frames
+df.male    <- df[ 2:10,] %>% mutate(location = location_) 
+df.female  <- df[13:21,] %>% mutate(location = location_)
+df.persons <- df[24:32,] %>% mutate(location = location_)
+```
+
+```{r echo=FALSE}
+knitr::kable(df.male   [, c(1, 100:110)], caption="Aust Historical Popn Stats (Mid-year): Males")
+knitr::kable(df.female [, c(1, 100:110)], caption="Aust Historical Popn Stats (Mid-year): Feales")
+knitr::kable(df.persons[, c(1, 100:110)], caption="Aust Historical Popn Stats (Mid-year): Persons")
+```
+
+```{r echo=FALSE, results='hide'}
+# Reshape and plot
+df.male    %<>% gather(year, population, -location) %>% mutate(sex='male')
+df.female  %<>% gather(year, population, -location) %>% mutate(sex='female')
+df.persons %<>% gather(year, population, -location) %>% mutate(sex='persons')
+
+population.recent <- bind_rows(df.male, df.female, df.persons) %>% mutate(year = as.numeric(levels(year)[year]))
+
+all.df <- filter(population.recent, sex=='persons', location=='Australia')
+ggplot(all.df, aes(year, population)) + geom_line() 
+ggplot(filter(population.recent, location=='Australia'), aes(year, population, group=sex)) + geom_line()
+
+
+# Save
+save(population.recent, file="../data/population.recent.rda", compress = 'bzip2')
+```
+
+
+
+
+Table 1.3 Population and components of change (no.), states and territories, year ended 30 June, 1971 onwards
+------------------------------------------------------------------------------
+```{r results='hide', warning=FALSE}
+col_names <- c("type", 1971:2011)
+col_types <- c('text', rep("numeric", 2011-1971+1))
+type_     <- c('births', 'deaths', 'natural increase', 'blank',
+               'NOM arrivals', 'NOM departures', 'category jumping', 'net overseas migration', 'blank',
+               'interstate arrivals', 'interstate departures', 'net interstate migration', 'blank',
+               'intercensal discrepancy', 'estimated resident population')
+
+type_australia <- c('births', 'deaths', 'natural increase', 'blank',
+                    'NOM arrivals', 'NOM departures', 'category jumping', 'net overseas migration', 'blank',
+                    'intercensal discrepancy', 'estimated resident population')
+
+df <- readxl::read_excel(filename, sheet="Table 1.3", skip=5, col_names=col_names, col_types=col_types) 
+
+res <- foreach(ii=1:length(location_), .combine=rbind) %do% {
+    row <- 2 + (ii-1) * 17
+    if (ii == length(location_)) {
+        tmp <- df[row:(row+10),] %>% mutate(type=type_australia, location=location_[ii])
+        
+    } else {
+        tmp <- df[row:(row+14),] %>% mutate(type=type_, location=location_[ii])
+    }
+    tmp
+}
+
+population.change <- res %>% filter(type!='blank') %>%
+    gather(year, number, -type, -location) %>%
+    mutate(year = as.numeric(levels(year)[year]))
+
+
+# Save
+save(population.change, file="../data/population.change.rda", compress = 'bzip2')
+```
+
+```{r}
+knitr::kable(population.change[4001:4015,], caption="popn and components of change. MidYear 1971-2011")
+
+ggplot(data = population.change %>% filter(location=='Australia', type=='estimated resident population'), aes(year, number)) + geom_line()
+```
+
+

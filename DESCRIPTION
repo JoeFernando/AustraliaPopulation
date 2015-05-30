@@ -1,0 +1,12 @@
+Package: AustraliaPopulation
+Type: Package
+Title: Population of Australia (1788-2011)
+Version: 0.1
+Date: 2015-05-30
+Authors@R: person("Coolbutuseless", "", email = "coolbutuseless@gmail.com", role = c("aut", "cre"))
+Description: Population of Australia as provided by the Australian Bureau of Statistics.
+    Contains data for both states and nationally.
+    Sourced from: [3105.0.65.001 - Australian Historical Population Statistics, 2014](http://www.abs.gov.au/AUSSTATS/abs@.nsf/DetailsPage/3105.0.65.0012014?OpenDocument)
+License: MIT
+LazyData: TRUE
+URL: http://github.com/coolbutuseless/AustraliaPopulation
