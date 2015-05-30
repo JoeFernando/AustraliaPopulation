@@ -57,15 +57,15 @@ df.male    %<>% gather(year, population, -location) %>% mutate(sex='male')
 df.female  %<>% gather(year, population, -location) %>% mutate(sex='female')
 df.persons %<>% gather(year, population, -location) %>% mutate(sex='persons')
 
-population <- bind_rows(df.male, df.female, df.persons) %>% mutate(year = as.numeric(levels(year)[year]))
+au.population <- bind_rows(df.male, df.female, df.persons) %>% mutate(year = as.numeric(levels(year)[year]))
 
 # Some test plots
-all.df <- filter(population, sex=='persons', location=='Australia')
+all.df <- filter(au.population, sex=='persons', location=='Australia')
 ggplot(all.df, aes(year, population)) + geom_line() 
-ggplot(filter(population, location=='Australia'), aes(year, population, group=sex)) + geom_line()
+ggplot(filter(au.population, location=='Australia'), aes(year, population, group=sex)) + geom_line()
 
 # Save
-save(population, file="../data/population.rda", compress = 'bzip2')
+save(au.population, file="../data/au.population.rda", compress = 'bzip2')
 ```
 
 
@@ -98,15 +98,15 @@ df.male    %<>% gather(year, population, -location) %>% mutate(sex='male')
 df.female  %<>% gather(year, population, -location) %>% mutate(sex='female')
 df.persons %<>% gather(year, population, -location) %>% mutate(sex='persons')
 
-population.recent <- bind_rows(df.male, df.female, df.persons) %>% mutate(year = as.numeric(levels(year)[year]))
+au.population.recent <- bind_rows(df.male, df.female, df.persons) %>% mutate(year = as.numeric(levels(year)[year]))
 
-all.df <- filter(population.recent, sex=='persons', location=='Australia')
+all.df <- filter(au.population.recent, sex=='persons', location=='Australia')
 ggplot(all.df, aes(year, population)) + geom_line() 
-ggplot(filter(population.recent, location=='Australia'), aes(year, population, group=sex)) + geom_line()
+ggplot(filter(au.population.recent, location=='Australia'), aes(year, population, group=sex)) + geom_line()
 
 
 # Save
-save(population.recent, file="../data/population.recent.rda", compress = 'bzip2')
+save(au.population.recent, file="../data/au.population.recent.rda", compress = 'bzip2')
 ```
 
 
@@ -139,19 +139,19 @@ res <- foreach(ii=1:length(location_), .combine=rbind) %do% {
     tmp
 }
 
-population.change <- res %>% filter(type!='blank') %>%
+au.population.change <- res %>% filter(type!='blank') %>%
     gather(year, number, -type, -location) %>%
     mutate(year = as.numeric(levels(year)[year]))
 
 
 # Save
-save(population.change, file="../data/population.change.rda", compress = 'bzip2')
+save(au.population.change, file="../data/au.population.change.rda", compress = 'bzip2')
 ```
 
 ```{r}
-knitr::kable(population.change[4001:4015,], caption="popn and components of change. MidYear 1971-2011")
+knitr::kable(au.population.change[4001:4015,], caption="popn and components of change. MidYear 1971-2011")
 
-ggplot(data = population.change %>% filter(location=='Australia', type=='estimated resident population'), aes(year, number)) + geom_line()
+ggplot(data = au.population.change %>% filter(location=='Australia', type=='estimated resident population'), aes(year, number)) + geom_line()
 ```
 
 
