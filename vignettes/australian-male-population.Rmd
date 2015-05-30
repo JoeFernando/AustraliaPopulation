@@ -1,0 +1,33 @@
+---
+title: "Male Population of Australia during World Wars"
+author: "coolbutuseless"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+    %\VignetteIndexEntry{Vignette Title}
+    %\VignetteEngine{knitr::rmarkdown}
+    %\VignetteEncoding{UTF-8}
+---
+
+```{r fig.width=6}
+library(dplyr)
+library(ggplot2)
+library(AustraliaPopulation)
+
+ww.males <- au.population %>% filter(sex=='male', location=='Australia', year >= 1900)
+
+ggplot() + geom_line(data=ww.males, aes(year, population)) +
+    geom_rect(data=data.frame(xmin=1914.5, xmax=1918.9, ymin=-Inf, ymax=Inf), 
+              aes(xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax), alpha=0.2) +
+    geom_rect(data=data.frame(xmin=1939.7, xmax=1945.7, ymin=-Inf, ymax=Inf), 
+              aes(xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax), alpha=0.2)
+```
+
+Population by state + gender
+----------------------------
+```{r fig.width=6, fig.height=5, warning=FALSE}
+psg <- au.population %>% filter(sex!='persons', location!='Australia')
+ggplot() + geom_line(data=psg, aes(x=year, y=population, colour=sex)) + facet_wrap(~location) +
+    theme(legend.position='bottom')
+```
+

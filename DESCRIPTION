@@ -7,7 +7,9 @@ Authors@R: person("Coolbutuseless", "", email = "coolbutuseless@gmail.com", role
 Description: Population of Australia as provided by the Australian Bureau of Statistics.
     Contains data for both states and nationally.
 License: file LICENSE
-Depends:
+Depends: 
     R (>= 2.10)
 LazyData: TRUE
 URL: http://github.com/coolbutuseless/AustraliaPopulation
+Suggests: knitr
+VignetteBuilder: knitr
